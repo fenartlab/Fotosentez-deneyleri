@@ -11,12 +11,15 @@
   --green-light: #a8e6c2;
   --yellow: #f9d84e;
   --yellow-dark: #e6b800;
+  --app-height: 100vh;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(160deg, #d4f0e2 0%, #b8e8d0 40%, #c9eaf8 100%);
-  height: 100vh;
+  height: var(--app-height);
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -288,6 +291,15 @@ header .subtitle { font-size: 0.85rem; opacity: 0.78; margin-top: 1px; }
   </div>
 </div>
 <script>
+// ── Mobil tarayıcılarda adres/gezinme çubuğu 100vh'ı yanıltabiliyor;
+// gerçek görünür yüksekliği JS ile ölçüp CSS değişkenine yazıyoruz.
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+
 const MATERIALS = [
   { id:'bitki',          emoji:'🌱', label:'Su bitkisi (Elodea)' },
   { id:'saksi', emoji:'🪴', label:'Saksı bitkisi', img:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCAxMDAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMDAiPgogIDxlbGxpcHNlIGN4PSI0MCIgY3k9IjUyIiByeD0iMjIiIHJ5PSI1IiBmaWxsPSIjNWEzYTFhIi8+CiAgPHBhdGggZD0iTTIwIDU1IEwyNCA4NSBRMjQgOTAgNDAgOTAgUTU2IDkwIDU2IDg1IEw2MCA1NSBaIiBmaWxsPSIjYzA1MjJhIiBzdHJva2U9IiM4YjNhMWEiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGVsbGlwc2UgY3g9IjQwIiBjeT0iNTUiIHJ4PSIyMCIgcnk9IjUiIGZpbGw9IiNkNDYzMmYiIHN0cm9rZT0iIzhiM2ExYSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8ZWxsaXBzZSBjeD0iNDAiIGN5PSI4NyIgcng9IjE2IiByeT0iMy41IiBmaWxsPSIjYTA0NTI1Ii8+CiAgPHBhdGggZD0iTTIyIDY1IFE0MCA2OCA1OCA2NSIgc3Ryb2tlPSIjYTA0NTI1IiBzdHJva2Utd2lkdGg9IjEuMiIgZmlsbD0ibm9uZSIvPgogIDxsaW5lIHgxPSI0MCIgeTE9IjUyIiB4Mj0iNDAiIHkyPSIyMCIgc3Ryb2tlPSIjNGE3YzNmIiBzdHJva2Utd2lkdGg9IjMuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTQwIDM4IFEyOCAzMCAyNCAyMiIgc3Ryb2tlPSIjNGE3YzNmIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTQwIDMyIFE1MiAyNCA1NiAxNiIgc3Ryb2tlPSIjNGE3YzNmIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGVsbGlwc2UgY3g9IjIwIiBjeT0iMTgiIHJ4PSIxMCIgcnk9IjYiIGZpbGw9IiMyZWNjNzEiIHN0cm9rZT0iIzI3YWU2MCIgc3Ryb2tlLXdpZHRoPSIxIiB0cmFuc2Zvcm09InJvdGF0ZSgtMzAgMjAgMTgpIi8+CiAgPGxpbmUgeDE9IjI0IiB5MT0iMTQiIHgyPSIxNiIgeTI9IjIyIiBzdHJva2U9IiMyN2FlNjAiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGVsbGlwc2UgY3g9IjU4IiBjeT0iMTIiIHJ4PSIxMCIgcnk9IjYiIGZpbGw9IiMyZWNjNzEiIHN0cm9rZT0iIzI3YWU2MCIgc3Ryb2tlLXdpZHRoPSIxIiB0cmFuc2Zvcm09InJvdGF0ZSgyMCA1OCAxMikiLz4KICA8bGluZSB4MT0iNTQiIHkxPSI5IiB4Mj0iNjIiIHkyPSIxNSIgc3Ryb2tlPSIjMjdhZTYwIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxlbGxpcHNlIGN4PSI0MCIgY3k9IjE0IiByeD0iOSIgcnk9IjUuNSIgZmlsbD0iIzI3YWU2MCIgc3Ryb2tlPSIjMWU4NDQ5IiBzdHJva2Utd2lkdGg9IjEiIHRyYW5zZm9ybT0icm90YXRlKC01IDQwIDE0KSIvPgogIDxsaW5lIHgxPSI0MCIgeTE9IjEwIiB4Mj0iNDAiIHkyPSIxOSIgc3Ryb2tlPSIjMWU4NDQ5IiBzdHJva2Utd2lkdGg9IjAuOCIvPgo8L3N2Zz4=' },
