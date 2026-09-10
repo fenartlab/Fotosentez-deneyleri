@@ -58,6 +58,11 @@ header .subtitle { font-size: 0.85rem; opacity: 0.78; margin-top: 1px; }
   padding: 14px 10px;
   display: flex;
   flex-direction: column;
+  /* Safari/iOS'ta iç içe flex kutularında min-height:0 açıkça
+     belirtilmezse tarayıcı bazen kutuyu içeriğin tam boyuna göre
+     büyütüp overflow'un hiç oluşmamasına (dolayısıyla kaydırmanın
+     çalışmamasına) yol açabiliyor — önlem olarak ekliyoruz. */
+  min-height: 0;
 }
 .panel-handle { display: none; }
 .panel-items {
@@ -66,6 +71,11 @@ header .subtitle { font-size: 0.85rem; opacity: 0.78; margin-top: 1px; }
   gap: 8px;
   overflow-y: auto;
   touch-action: pan-y;
+  /* iOS Safari'de dokunmatik kaydırmanın (özellikle iç içe flex
+     kutularında) düzgün/akıcı çalışması için gerekli — bazı iOS
+     sürümlerinde bu olmadan kaydırma hiç başlamayabiliyor. */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   flex: 1;
   min-height: 0;
 }
@@ -330,7 +340,7 @@ body.js-mobile .d-resize {
 <script>
 // ── Build işareti: her yayında değiştir, ekran görüntüsünde hangi
 // sürümün yüklendiğini kesin olarak ayırt edebilmek için. ─────────
-const BUILD_ID = '2026-09-10-r5';
+const BUILD_ID = '2026-09-10-r6';
 
 // ── Duyarlı (responsive) düzen: CSS @media YERİNE JS ile karar ──
 // Bazı gömülü/önizleme ortamlarında @media sorguları beklenmedik
