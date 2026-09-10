@@ -211,55 +211,85 @@ header .subtitle { font-size: 0.85rem; opacity: 0.78; margin-top: 1px; }
 }
 .hint-mobile { display: none; }
 
-/* ── Mobil: malzeme paneli alttan açılan sürüklenebilir çekmece ── */
-@media (max-width: 720px) {
-  header { padding: 8px 12px; }
-  header h1 { font-size: 1.02rem; line-height: 1.2; }
-  header .subtitle { display: none; }
-  .btn-reset { padding: 7px 14px; font-size: 0.78rem; white-space: nowrap; }
-  .panel {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    width: auto; min-width: 0;
-    height: 74%;
-    max-height: 74%;
-    border-right: none;
-    border-top: 2.5px solid var(--green-light);
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -6px 20px rgba(0,0,0,0.2);
-    background: rgba(255,255,255,0.97);
-    padding: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
-    transform: translateY(calc(100% - 54px));
-    transition: transform 0.32s cubic-bezier(.25,.9,.35,1);
-    z-index: 400;
-    touch-action: none;
-  }
-  .panel.open { transform: translateY(0); }
-  .panel-handle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 32px;
-    flex-shrink: 0;
-    cursor: grab;
-    touch-action: none;
-  }
-  .panel-handle-bar {
-    width: 46px; height: 5px;
-    background: var(--green-light);
-    border-radius: 3px;
-  }
-  .panel-title { flex-shrink: 0; padding-bottom: 6px; }
-  .panel-items {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    touch-action: pan-y;
-  }
-  .item { width: 76px; }
-  .hint-desktop { display: none; }
-  .hint-mobile { display: inline; }
-  .hint { bottom: 16px; white-space: normal; text-align: center; max-width: 80%; }
+#debugBadge {
+  position: fixed; left: 6px; bottom: 6px;
+  background: rgba(0,0,0,0.55); color: #fff;
+  font: 10px/1.4 monospace;
+  padding: 3px 7px; border-radius: 6px;
+  z-index: 99999; pointer-events: none;
+  white-space: nowrap;
+}
+
+/*
+ * ── Mobil düzen ─────────────────────────────────────────────
+ * KASITLI OLARAK @media SORGUSU KULLANMIYORUZ. Bunun yerine
+ * JS, window.innerWidth'i ölçüp body öğesine "js-mobile" ya da
+ * "js-desktop" sınıfını ekliyor (bkz. script bloğu içindeki
+ * applyResponsiveLayout()). Bazı gömülü/önizleme ortamlarında CSS
+ * @media sorguları view­port'u farklı yorumlayabildiği için, gerçek
+ * ekran genişliğini doğrudan JS ile ölçüp sınıf olarak uygulamak
+ * çok daha güvenilir. Ekranın sol-alt köşesindeki küçük rozet
+ * (#debugBadge) o an hangi moda geçildiğini ve ölçülen genişlik/
+ * yüksekliği canlı gösterir.
+ */
+body.js-mobile header { padding: 8px 12px; }
+body.js-mobile header h1 { font-size: 1.02rem; line-height: 1.2; }
+body.js-mobile header .subtitle { display: none; }
+body.js-mobile .btn-reset { padding: 7px 14px; font-size: 0.78rem; white-space: nowrap; }
+body.js-mobile .panel {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  width: auto; min-width: 0;
+  border-right: none;
+  border-top: 2.5px solid var(--green-light);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.2);
+  background: rgba(255,255,255,0.97);
+  padding: 0 12px 14px;
+  transition: transform 0.32s cubic-bezier(.25,.9,.35,1);
+  z-index: 400;
+  touch-action: none;
+  /* height ve transform JS tarafından applyResponsiveLayout() /
+     setupPanelDrawer() içinde satır-içi (inline) stil olarak
+     yazılıyor — bkz. script. */
+}
+body.js-mobile .panel-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+}
+body.js-mobile .panel-handle-bar {
+  width: 46px; height: 5px;
+  background: var(--green-light);
+  border-radius: 3px;
+}
+body.js-mobile .panel-title { flex-shrink: 0; padding-bottom: 6px; }
+body.js-mobile .panel-items {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  touch-action: pan-y;
+}
+body.js-mobile .item { width: 76px; }
+body.js-mobile .hint-desktop { display: none; }
+body.js-mobile .hint-mobile { display: inline; }
+body.js-mobile .hint { bottom: 16px; white-space: normal; text-align: center; max-width: 80%; }
+/*
+ * Dokunmatik cihazlarda "hover" diye bir kavram olmadığı için
+ * .dropped:hover ile gösterilen sil (✕) ve boyutlandır tutamaçları
+ * mobilde HİÇ görünmüyordu — nesneler büyütülüp küçültülemiyordu.
+ * Mobil modda bu kontrolleri her zaman görünür yapıyoruz, ayrıca
+ * parmakla tutması daha kolay olsun diye tutamacı büyütüyoruz.
+ */
+body.js-mobile .d-remove { display: flex; }
+body.js-mobile .d-resize {
+  display: block;
+  width: 26px; height: 26px;
+  bottom: -9px; right: -9px;
 }
 </style>
 </head>
@@ -290,15 +320,58 @@ header .subtitle { font-size: 0.85rem; opacity: 0.78; margin-top: 1px; }
     </div>
   </div>
 </div>
+<div id="debugBadge"></div>
 <script>
-// ── Mobil tarayıcılarda adres/gezinme çubuğu 100vh'ı yanıltabiliyor;
-// gerçek görünür yüksekliği JS ile ölçüp CSS değişkenine yazıyoruz.
-function setAppHeight() {
-  document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+// ── Build işareti: her yayında değiştir, ekran görüntüsünde hangi
+// sürümün yüklendiğini kesin olarak ayırt edebilmek için. ─────────
+const BUILD_ID = '2026-09-10-r4';
+
+// ── Duyarlı (responsive) düzen: CSS @media YERİNE JS ile karar ──
+// Bazı gömülü/önizleme ortamlarında @media sorguları beklenmedik
+// çalışabiliyor; bu yüzden gerçek ölçümü doğrudan window'dan alıp
+// hem bir body sınıfı hem de panelin satır-içi boyutu/konumu
+// olarak uyguluyoruz. Ekranın sol-alt köşesindeki rozet bu ölçümü
+// canlı gösterir — sorun devam ederse rozetteki sayılar teşhis için
+// kullanılabilir.
+function applyResponsiveLayout() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const mobile = w <= 760;
+
+  document.body.classList.toggle('js-mobile', mobile);
+  document.body.classList.toggle('js-desktop', !mobile);
+
+  const panelEl = document.getElementById('panel');
+  if (panelEl) {
+    if (mobile) {
+      const openHeight = Math.round(h * 0.74);
+      const collapsedOffset = openHeight - 56;
+      panelEl.style.height = openHeight + 'px';
+      panelEl.style.maxHeight = openHeight + 'px';
+      panelEl.dataset.collapsedOffset = collapsedOffset;
+      if (!panelEl.classList.contains('open')) {
+        panelEl.style.transform = `translateY(${collapsedOffset}px)`;
+      } else {
+        panelEl.style.transform = 'translateY(0px)';
+      }
+    } else {
+      panelEl.style.height = '';
+      panelEl.style.maxHeight = '';
+      panelEl.style.transform = '';
+      panelEl.classList.remove('open');
+    }
+  }
+
+  document.documentElement.style.setProperty('--app-height', h + 'px');
+
+  const badge = document.getElementById('debugBadge');
+  if (badge) {
+    badge.textContent = `${w}×${h} · ${mobile ? 'mobil düzen' : 'masaüstü düzen'} · build ${BUILD_ID}`;
+  }
 }
-setAppHeight();
-window.addEventListener('resize', setAppHeight);
-window.addEventListener('orientationchange', setAppHeight);
+applyResponsiveLayout();
+window.addEventListener('resize', applyResponsiveLayout);
+window.addEventListener('orientationchange', applyResponsiveLayout);
 
 const MATERIALS = [
   { id:'bitki',          emoji:'🌱', label:'Su bitkisi (Elodea)' },
@@ -371,11 +444,17 @@ MATERIALS.forEach(mat => {
 });
 
 // ── Mobil alt çekmece: tutamacı sürükleyerek/tıklayarak aç-kapa ─
+// Konum/boyut artık applyResponsiveLayout() tarafından satır-içi
+// stil olarak yazılıyor; burada sadece sürükleme/tıklama ile o
+// inline transform'u güncelliyoruz.
 (function setupPanelDrawer() {
   let dragging = false, moved = false, startY = 0, startTranslate = 0;
 
   function isMobileLayout() {
-    return window.matchMedia('(max-width: 720px)').matches;
+    return document.body.classList.contains('js-mobile');
+  }
+  function collapsedOffset() {
+    return Number(panel.dataset.collapsedOffset || 0);
   }
   function getTranslateY() {
     const st = getComputedStyle(panel).transform;
@@ -383,12 +462,9 @@ MATERIALS.forEach(mat => {
     const m = new DOMMatrixReadOnly(st);
     return m.m42;
   }
-  function collapsedY() {
-    return panel.offsetHeight - 54;
-  }
   function setOpen(open) {
     panel.classList.toggle('open', open);
-    panel.style.transform = '';
+    panel.style.transform = open ? 'translateY(0px)' : `translateY(${collapsedOffset()}px)`;
   }
 
   function onStart(clientY) {
@@ -402,7 +478,7 @@ MATERIALS.forEach(mat => {
     if (!dragging) return;
     const dy = clientY - startY;
     if (Math.abs(dy) > 4) moved = true;
-    const ty = Math.max(0, Math.min(collapsedY(), startTranslate + dy));
+    const ty = Math.max(0, Math.min(collapsedOffset(), startTranslate + dy));
     panel.style.transform = `translateY(${ty}px)`;
   }
   function onEnd(clientY) {
@@ -410,14 +486,12 @@ MATERIALS.forEach(mat => {
     dragging = false;
     panel.style.transition = '';
     if (!moved) {
-      panel.style.transform = '';
       setOpen(!panel.classList.contains('open'));
       return;
     }
     const dy = clientY - startY;
-    const ty = Math.max(0, Math.min(collapsedY(), startTranslate + dy));
-    panel.style.transform = '';
-    setOpen(ty < collapsedY() / 2);
+    const ty = Math.max(0, Math.min(collapsedOffset(), startTranslate + dy));
+    setOpen(ty < collapsedOffset() / 2);
   }
 
   panelHandle.addEventListener('touchstart', e => { onStart(e.touches[0].clientY); }, { passive: true });
@@ -438,9 +512,7 @@ MATERIALS.forEach(mat => {
     }
   });
 
-  window.addEventListener('resize', () => {
-    if (!isMobileLayout()) panel.classList.remove('open');
-  });
+  window._closePanelDrawer = () => setOpen(false);
 })();
 
 // ── Panel sürükleme mantığı ────────────────────────────────────
@@ -466,7 +538,7 @@ function startPanelDrag(mat, startCX, startCY, offX, offY, mode) {
     })();
     if (!overOpenDrawer && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
       spawnItem(mat, cx - cr.left - offX, cy - cr.top - offY);
-      panel.classList.remove('open');
+      if (window._closePanelDrawer) window._closePanelDrawer();
     }
   }
 
