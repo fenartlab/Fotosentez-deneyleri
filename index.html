@@ -89,7 +89,13 @@ header .subtitle { font-size: 0.85rem; opacity: 0.78; margin-top: 1px; }
   gap: 5px;
   cursor: grab;
   box-shadow: 0 2px 8px rgba(30,100,60,0.08);
-  touch-action: none;
+  /* touch-action:none idi — bu, üzerinde başlayan HİÇBİR dokunuşun
+     tarayıcı tarafından kaydırma (scroll) olarak yorumlanmamasına yol
+     açıyordu; masaüstü/tablet düzenindeki (iPad) uzun tek-sütunlu
+     listede bu yüzden liste hiç kaydırılamıyordu. pan-y ile dikey
+     kaydırmaya izin veriyoruz — sürükleme, JS'teki "bekle sonra sürükle"
+     mantığıyla (aşağıdaki touchstart/touchmove) hâlâ çalışıyor. */
+  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -324,7 +330,7 @@ body.js-mobile .d-resize {
 <script>
 // ── Build işareti: her yayında değiştir, ekran görüntüsünde hangi
 // sürümün yüklendiğini kesin olarak ayırt edebilmek için. ─────────
-const BUILD_ID = '2026-09-10-r4';
+const BUILD_ID = '2026-09-10-r5';
 
 // ── Duyarlı (responsive) düzen: CSS @media YERİNE JS ile karar ──
 // Bazı gömülü/önizleme ortamlarında @media sorguları beklenmedik
@@ -417,17 +423,57 @@ MATERIALS.forEach(mat => {
   div.innerHTML = `${visual}<span class="label">${mat.label}</span>`;
 
   // Panelden sürükleme — TOUCH
+  // Dikkat: eskiden touchstart'ta sürükleme HEMEN başlıyor ve
+  // preventDefault() çağrılıyordu — bu, listedeki her dokunuşu anında
+  // sürüklemeye çeviriyor, tarayıcının listeyi kaydırmasını (native
+  // scroll) tamamen engelliyordu. Masaüstü/tablet düzeninde (tek
+  // sütunlu, uzun malzeme listesi) bu yüzden liste HİÇ kaydırılamıyordu
+  // (iPad'de bildirilen sorun buydu). Şimdi kısa bir "bekleme" süresi
+  // kullanıyoruz: parmak ~140ms içinde belirgin hareket ederse (kaydırma
+  // niyeti) sürüklemeyi hiç başlatmıyor, tarayıcının doğal kaydırmasına
+  // izin veriyoruz; parmak o süre boyunca yerinde kalırsa bunu "öğeyi
+  // tut" (sürükleme) niyeti sayıp sürüklemeyi başlatıyoruz.
   div.addEventListener('touchstart', e => {
-    e.preventDefault();
-    div._touchActive = true;
-    hint.style.opacity = '0';
     const t = e.touches[0];
-    const rect = div.getBoundingClientRect();
-    const offX = t.clientX - rect.left;
-    const offY = t.clientY - rect.top;
-    startPanelDrag(mat, t.clientX, t.clientY, offX, offY, 'touch');
-    setTimeout(() => { div._touchActive = false; }, 500);
-  }, { passive: false });
+    const startX = t.clientX, startY = t.clientY;
+    let settled = false;
+
+    const holdTimer = setTimeout(() => {
+      settled = true;
+      cleanup();
+      div._touchActive = true;
+      hint.style.opacity = '0';
+      const rect = div.getBoundingClientRect();
+      const offX = startX - rect.left;
+      const offY = startY - rect.top;
+      startPanelDrag(mat, startX, startY, offX, offY, 'touch');
+      setTimeout(() => { div._touchActive = false; }, 500);
+    }, 140);
+
+    function onMove(ev) {
+      if (settled) return;
+      const mt = ev.touches[0];
+      const dx = Math.abs(mt.clientX - startX);
+      const dy = Math.abs(mt.clientY - startY);
+      if (dx > 10 || dy > 10) {
+        // Belirgin hareket — kaydırma niyeti, sürüklemeyi iptal et
+        clearTimeout(holdTimer);
+        cleanup();
+      }
+    }
+    function onEnd() {
+      if (!settled) clearTimeout(holdTimer);
+      cleanup();
+    }
+    function cleanup() {
+      div.removeEventListener('touchmove', onMove);
+      div.removeEventListener('touchend', onEnd);
+      div.removeEventListener('touchcancel', onEnd);
+    }
+    div.addEventListener('touchmove', onMove, { passive: true });
+    div.addEventListener('touchend', onEnd, { passive: true });
+    div.addEventListener('touchcancel', onEnd, { passive: true });
+  }, { passive: true });
 
   // Panelden sürükleme — MOUSE (touch varsa çalışma)
   div.addEventListener('mousedown', e => {
@@ -494,12 +540,19 @@ MATERIALS.forEach(mat => {
     setOpen(ty < collapsedOffset() / 2);
   }
 
-  panelHandle.addEventListener('touchstart', e => { onStart(e.touches[0].clientY); }, { passive: true });
+  // Not: touchend'de preventDefault ÇAĞRILMIYORSA tarayıcı, dokunuştan
+  // ~300ms sonra "uyumluluk" için sahte mousedown/mouseup olayları
+  // üretir — bunlar da aşağıdaki ayrı mousedown/mouseup dinleyicileri
+  // üzerinden onStart/onEnd'i TEKRAR çağırıp çekmeceyi açtığı gibi hemen
+  // kapatıyordu (gerçek cihazda "açılıp kendi kendine kapanma" hissi
+  // verebilir). Üç olayda da preventDefault çağırarak bu sahte
+  // fare olaylarının hiç üretilmemesini sağlıyoruz.
+  panelHandle.addEventListener('touchstart', e => { e.preventDefault(); onStart(e.touches[0].clientY); }, { passive: false });
   panelHandle.addEventListener('touchmove', e => {
-    if (dragging) e.preventDefault();
+    e.preventDefault();
     onMove(e.touches[0].clientY);
   }, { passive: false });
-  panelHandle.addEventListener('touchend', e => { onEnd(e.changedTouches[0].clientY); });
+  panelHandle.addEventListener('touchend', e => { e.preventDefault(); onEnd(e.changedTouches[0].clientY); }, { passive: false });
 
   panelHandle.addEventListener('mousedown', e => { onStart(e.clientY); });
   document.addEventListener('mousemove', e => { onMove(e.clientY); });
